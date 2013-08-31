@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <langs>
 	<lang name="English">
+		<string id="check" >_Check now</string>
+		<string id="inbox">_Go to inbox...</string>
+		<string id="start_refreshing">_Start refreshing</string>
+		<string id="stop_refreshing">_Stop refreshing</string>
+		<string id="configure">_Configure...</string>
+		<string id="exit">_Exit</string>
+		<string id="configure_name">Gmail Notifier Config</string>
+		<string id="username" >Username:</string>
+		<string id="password">Password:</string>
+		<string id="browser" >Browser path:</string>
+		<string id="check_interval">Check interval:</string>
+		<string id="popup_time">Popup time span:</string>
+		<string id="language" >Language:</string>
+		<string id="save">Save username and password</string>
 		<string id="1" >Gmail Notifier Config</string>
 		<string id="2" >Username:</string>
 		<string id="3" >Browser path:</string>
@@ -22,7 +36,7 @@
 		<string id="20">Connecting...</string>
 		<string id="21">Gmail Notifier</string>
 		<string id="22">Password:</string>
-		<string id="23">Go to inbox...</string>
+		<string id="23">_Go to inbox...</string>
 		<string id="25">Mailcheck failed, will retry</string>
 		<string id="26">Advanced >></string>
 		<string id="27">Horizontal offset:</string>
@@ -39,6 +53,20 @@
 		<string id="38">Please, set login and password</string>
 	</lang>
 	<lang name="Russian">
+		<string id="check" >_Check now</string>
+		<string id="inbox">_Go to inbox...</string>
+		<string id="start_refreshing">_Start refreshing</string>
+		<string id="stop_refreshing">_Stop refreshing</string>
+		<string id="configure">_Configure...</string>
+		<string id="exit">_Exit</string>
+		<string id="configure_name">Gmail Notifier Config</string>
+		<string id="username" >Username:</string>
+		<string id="password">Password:</string>
+		<string id="browser" >Browser path:</string>
+		<string id="check_interval">Check interval:</string>
+		<string id="popup_time">Popup time span:</string>
+		<string id="language" >Language:</string>
+		<string id="save">Save username and password</string>
 		<string id="1" >Настройка Gmail Notifier</string>
 		<string id="2" >Имя пользователя:</string>
 		<string id="3" >Браузер:</string>
