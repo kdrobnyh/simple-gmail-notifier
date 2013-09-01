@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import gtk
-import constants
+import notifierconstants
 
 
 class GmailPopupMenu:
     def __init__(self, gmailnotify):
-        self.const = constants.Constants()
+        self.const = notifierconstants.NotifierConstants()
         # Create menu items
         self.item_check = gtk.MenuItem(gmailnotify.lang.get_string(9), gtk.TRUE)
         self.item_inbox = gtk.MenuItem(gmailnotify.lang.get_string(23), gtk.TRUE)

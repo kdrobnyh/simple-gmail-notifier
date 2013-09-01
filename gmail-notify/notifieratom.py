@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
 
-# gmailatom 0.0.1
+# gmailatom
 #
 # HOW TO USE:
 # 1) Create an instance of 'GmailAtom' class. The two arguments
@@ -24,10 +24,12 @@
 #
 # by Juan Grande
 # juan.grande@gmail.com
+# modified by Klim Drobnyh
+# klim.drobnyh@gmail.com
 
-from xml.sax.handler import ContentHandler
 from xml import sax
 import urllib2
+import notifierconstants
 
 
 # Auxiliar structure
@@ -39,7 +41,7 @@ class Mail:
 
 
 # Sax XML Handler
-class MailHandler(ContentHandler):
+class MailHandler(sax.handler.ContentHandler):
     # Tags
     TAG_FEED = "feed"
     TAG_FULLCOUNT = "fullcount"
@@ -110,6 +112,12 @@ class MailHandler(ContentHandler):
     def getUnreadMsgCount(self):
         return int(self.mail_count)
 
+    def getMail(self, index):
+        if index < int(self.mail_count):
+            return self.entries[index]
+        else:
+            return Mail()
+
 
 # The mail class
 class GmailAtom:
@@ -117,6 +125,8 @@ class GmailAtom:
     realm = "New mail feed"
     host = "https://mail.google.com"
     url = host + "/mail/feed/atom"
+    consts = notifierconstants.NotifierConstants()
+    status = consts.get_ok()
 
     def __init__(self, user, pswd):
         self.m = MailHandler()
@@ -127,22 +137,38 @@ class GmailAtom:
         urllib2.install_opener(opener)
 
     def sendRequest(self):
-        return urllib2.urlopen(self.url)
+        try:
+            self.status = self.consts.get_ok()
+            return urllib2.urlopen(self.url, None, 200)
+        except urllib2.HTTPError:
+            self.status = self.consts.get_auterror()
+            print "Autentification failed!"
+            return None
+        except urllib2.URLError:
+            self.status = self.consts.get_connectionerror()
+            print "Connection failed!"
+            return None
 
     def refreshInfo(self):
-        sax.parseString(self.sendRequest().read(), self.m)
+        s = self.sendRequest()
+        if s is not None:
+            try:
+                sax.parseString(s.read(), self.m)
+            except:
+                return self.consts.get_parseerror()
+        return self.status
 
     def getUnreadMsgCount(self):
         return self.m.getUnreadMsgCount()
 
     def getMsgTitle(self, index):
-        return self.m.entries[index].title
+        return self.m.getMail(index).title
 
     def getMsgSummary(self, index):
-        return self.m.entries[index].summary
+        return self.m.getMail(index).summary
 
     def getMsgAuthorName(self, index):
-        return self.m.entries[index].author_name
+        return self.m.getMail(index).author_name
 
     def getMsgAuthorEmail(self, index):
-        return self.m.entries[index].author_email
+        return self.m.getMail(index).author_email

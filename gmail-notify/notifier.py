@@ -11,7 +11,7 @@ import warnings
 import notifierconfig
 import notifieratom
 import notifierpopup
-import constants
+import notifierconstants
 
 #sys.path[0] = "/usr/share/gmail-notify"
 sys.path[0] = "/home/kad/projects/git/gmail-notifier/gmail-notify/"
@@ -54,7 +54,7 @@ class GmailNotify:
 
     def __init__(self):
         self.popup = False
-        self.const = constants.Constants()
+        self.const = notifierconstants.NotifierConstants()
         self.status = self.const.get_nologin()
         print "Gmail Notifier v2.0.0 (" + time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()) + ")"
         print "----------"
