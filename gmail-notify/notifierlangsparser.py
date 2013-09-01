@@ -58,3 +58,6 @@ class NotifierLangsParser:
 
     def get_lang(self, langname):
         return self.lh.langs[langname]
+
+    def get_langs(self):
+        return self.lh.langs.keys()
