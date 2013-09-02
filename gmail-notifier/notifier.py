@@ -4,7 +4,6 @@
 import pygtk
 pygtk.require('2.0')
 import gtk
-import pango
 import time
 import os
 import sys
@@ -22,27 +21,6 @@ ICON_PATH_UNREAD = sys.path[0] + "gmail-notifier.png"
 ICON_PATH_NEW = sys.path[0] + "gmail-notifier-new.png"
 ICON_PATH_WARNING = sys.path[0] + "gmail-notifier-warning.png"
 SOUND_PATH_INCOMING = sys.path[0] + "incoming.wav"
-#SCALE_SIZE = 128
-
-
-def shortenstring(text, characters):
-    if text is None:
-        text = ""
-    mainstr = ""
-    length = 0
-    splitstr = text.split(" ")
-    for word in splitstr:
-        length = length + len(word)
-        if len(word) > characters:
-            if mainstr == "":
-                mainstr = word[0:characters]
-                break
-            else:
-                break
-        mainstr = mainstr + word + " "
-        if length > characters:
-            break
-    return mainstr.strip()
 
 
 class GmailNotify:
@@ -187,8 +165,6 @@ class GmailNotify:
             pixmap = self.scale_icon_to_system_tray(self.icon_unread).render_pixmap_and_mask(alpha_threshold=127)[0]
             label = gtk.Label(str(messages_count))
             textLay = label.create_pango_layout("")
-            #font = pango.FontDescription("Sans bold " + str(self.icon_size / 3))
-            #textLay.set_font_description(font)
             textLay.set_markup('<span font_desc="Sans bold %i" foreground="#010101">%s</span>' % (self.icon_size / 3, str(messages_count)))
             (text_w, text_h) = textLay.get_pixel_size()
             x = 2 * (self.icon_size - text_w) / 3
@@ -201,20 +177,6 @@ class GmailNotify:
             pixbuf = trayPixbuf.add_alpha(True, 0, 0, 0)
             #cmap = gtk.gdk.Colormap(gtk.gdk.visual_get_system(), False)
 
-            #w, h = pixbuf2.get_width(), pixbuf2.get_height()
-            #drawable = gtk.gdk.Pixmap(None, w, h, 24)
-            #drawable.set_colormap = cmap
-            #gc = drawable.new_gc()
-            #drawable.draw_pixbuf(gc, pixbuf2, 0, 0, 0, 0, w, h)
-            #font = gtk.gdk.Font("-adobe-helvetica-bold-r-normal--12-120-75-75-p-70-iso8859-1")
-            #drawable.draw_string = (gtk.Label("H").get_style().font_desc, gc, 0, 0, str(messages_count))
-            #area = gtk.DrawingArea()
-            #area.set_size_request(w, h)
-            #layout = area.create_pango_layout(str(messages_count))
-            #layout.set_text(str(messages_count))
-            #drawable.draw_layout(gc, 0, 0, layout)
-            #pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
-            #pixbuf.get_from_drawable(drawable, cmap, 0, 0, 0, 0, w, h)
             self.mails = messages
             if unread:
                 self.show_new_messages(messages, new=False)
