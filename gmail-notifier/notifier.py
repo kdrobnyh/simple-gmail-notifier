@@ -17,7 +17,7 @@ import subprocess
 #sys.path[0] = "/usr/share/gmail-notify"
 sys.path[0] = "/home/kad/projects/git/gmail-notifier/gmail-notifier/"
 ICON_PATH_EMPTY = sys.path[0] + "gmail-notifier-empty.png"
-ICON_PATH_UNREAD = sys.path[0] + "gmail-notifier.png"
+ICON_PATH_UNREAD = sys.path[0] + "gmail-notifier-unread.png"
 ICON_PATH_NEW = sys.path[0] + "gmail-notifier-new.png"
 ICON_PATH_WARNING = sys.path[0] + "gmail-notifier-warning.png"
 SOUND_PATH_INCOMING = sys.path[0] + "incoming.wav"
@@ -168,7 +168,7 @@ class GmailNotify:
             textLay.set_markup('<span font_desc="Sans bold %i" foreground="#010101">%s</span>' % (self.icon_size / 3, str(messages_count)))
             (text_w, text_h) = textLay.get_pixel_size()
             x = 2 * (self.icon_size - text_w) / 3
-            y = self.icon_size / 4 + int((0.9 * self.icon_size - text_h) / 2)
+            y = self.icon_size / 4 + int((0.85 * self.icon_size - text_h) / 2)
 
             ## Finally draw the text and apply in status icon
             pixmap.draw_layout(pixmap.new_gc(), x, y, textLay)  # foreground, background)

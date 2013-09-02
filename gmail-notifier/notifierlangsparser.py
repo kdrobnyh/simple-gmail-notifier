@@ -21,6 +21,7 @@
 
 from xml import sax
 import collections
+import logging
 
 
 # Language XML file parser
@@ -52,9 +53,9 @@ class NotifierLangsParser:
         self.lh = LangHandler()
         try:
             sax.parse(filename, self.lh)
-            print "notifierlangsparser: XML file succesfully parsed"
+            logging.info("notifierlangsparser: XML file succesfully parsed")
         except:
-            print "notifierlangsparser: Error parsing XML file."
+            logging.info("notifierlangsparser: Error parsing XML file.")
 
     def get_lang(self, langname):
         return self.lh.langs[langname]

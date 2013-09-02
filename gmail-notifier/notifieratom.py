@@ -30,6 +30,7 @@
 from xml import sax
 import urllib2
 import notifierconstants
+import logging
 
 
 # Auxiliar structure
@@ -152,11 +153,11 @@ class GmailAtom:
             return s.read()
         except urllib2.HTTPError:
             self.status = self.consts.get_auterror()
-            print "GmailAtom:Autentification failed!"
+            logging.info("Autentification failed!")
             return None
         except urllib2.URLError:
             self.status = self.consts.get_connectionerror()
-            print "GmailAtom:Connection failed!"
+            logging.info("Connection failed!")
             return None
 
     def refreshInfo(self):
@@ -166,6 +167,7 @@ class GmailAtom:
                 try:
                     sax.parseString(s, self.m)
                 except:
+                    logging.info("Parsing failed!")
                     return self.consts.get_parseerror()
         return self.status
 

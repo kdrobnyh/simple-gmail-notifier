@@ -10,11 +10,12 @@ import notifierlangsparser
 import sys
 import bz2
 import random
+import logging
 
 sys.path[0] = "/home/kad/projects/git/gmail-notifier/gmail-notifier"
 #sys.path[0] = "/usr/share/gmail-notify"
 LANGSXML_PATH = sys.path[0] + "/langs.xml"
-ICON_PATH = sys.path[0] + "/gmail-notifier.png"
+ICON_PATH = sys.path[0] + "/gmail-notifier-unread.png"
 CONFIG_PATH = "~/.config/gmail-notifier/gmail-notifier.conf"
 
 
@@ -144,12 +145,15 @@ class GmailConfigWindow:
             os.makedirs(d)
 
     def readConfig(self):
+        logging.info("Reading configuration...")
         self.config = ConfigParser.RawConfigParser()
         readFiles = self.config.read(os.path.expanduser(CONFIG_PATH))
         if (len(readFiles) == 1):
             self.loadedConfig = readFiles[0]
+            logging.info("Configuration file opened")
         else:
             self.config.add_section("options")
+            logging.info("Configuration file is not exist. Creating...")
         self.loadedConfig = os.path.expanduser(CONFIG_PATH)
         # Check which options are defined and override defaults
         for key in self.options.keys():
@@ -165,7 +169,7 @@ class GmailConfigWindow:
         self.langs_parser = notifierlangsparser.NotifierLangsParser(LANGSXML_PATH)
         self.langs = self.langs_parser.get_langs()
         self.lang = self.langs_parser.get_lang(self.options["lang"])
-        print "Configuration read (%s)" % self.loadedConfig
+        logging.info("Configuration read (%s)" % self.loadedConfig)
 
     def getOptions(self):
         return self.options
@@ -196,6 +200,7 @@ class GmailConfigWindow:
                 self.options[curElement[0]] = curElement[2].get_text()
 
         if errorMessage is not None:
+            logging.info(errorMessage)
             dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK, type=gtk.MESSAGE_ERROR)
             dialog.set_position(gtk.WIN_POS_CENTER)
             dialog.set_markup(errorMessage)
@@ -221,6 +226,7 @@ class GmailConfigWindow:
             self.ensure_dir(self.loadedConfig)
             self.config.write(open(self.loadedConfig, 'w'))
         except:
+            logging.info("Can't save settings to file!")
             dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK, type=gtk.MESSAGE_WARNING)
             dialog.set_position(gtk.WIN_POS_CENTER)
             dialog.set_markup("Can't save settings to file!")
@@ -250,6 +256,7 @@ class GmailConfigWindow:
         gtk.main()
 
 if __name__ == "__main__":
+    logging.basicConfig(format="%(module)s:%(funcName)s()  %(message)s", level=logging.DEBUG)
     config = GmailConfigWindow()
     config.update_labels()
     config.show()
