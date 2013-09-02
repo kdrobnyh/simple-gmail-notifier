@@ -14,7 +14,7 @@ import notifierpopup
 import notifierconstants
 
 #sys.path[0] = "/usr/share/gmail-notify"
-sys.path[0] = "/home/kad/projects/git/gmail-notifier/gmail-notify/"
+sys.path[0] = "/home/kad/projects/git/gmail-notifier/gmail-notifier/"
 BKG_PATH = sys.path[0] + "background.jpg"
 ICON_PATH = sys.path[0] + "icon.png"
 ICON2_PATH = sys.path[0] + "icon2.png"
@@ -64,10 +64,10 @@ class GmailNotify:
         self.options = self.configWindow.options
         # Load selected language
         self.lang = self.configWindow.get_lang()
-        print "selected language: " + self.lang.get_name()
+        print "selected language: " + self.configWindow.get_lang_name()
         # Creates the main window
         self.window = gtk.Window(gtk.WINDOW_POPUP)
-        self.window.set_title(self.lang.get_string(21))
+        self.window.set_title(self.lang["program_name"])
         self.window.set_resizable(1)
         self.window.set_decorated(0)
         self.window.set_keep_above(1)

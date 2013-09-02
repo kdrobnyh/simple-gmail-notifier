@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <langs>
 	<lang name="English">
+		<string id="program_name">Gmail Notifier</string>
 		<string id="check" >_Check now</string>
 		<string id="inbox">_Go to inbox...</string>
 		<string id="start_refreshing">_Start refreshing</string>

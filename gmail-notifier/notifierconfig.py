@@ -11,7 +11,7 @@ import sys
 import bz2
 import random
 
-sys.path[0] = "/home/kad/projects/git/gmail-notifier/gmail-notify"
+sys.path[0] = "/home/kad/projects/git/gmail-notifier/gmail-notifier"
 #sys.path[0] = "/usr/share/gmail-notify"
 LANGSXML_PATH = sys.path[0] + "/langs.xml"
 ICON_PATH = sys.path[0] + "/gmail-notify-icon.png"
@@ -99,7 +99,7 @@ class GmailConfigWindow:
             self.savePassword.set_active(gtk.FALSE)
 
         self.savePassword.show()
-        table.attach(alignment, 0, 2, 9, 10)
+        table.attach(alignment, 0, 2, 6, 7)
         alignment.show()
 
         # Add combobox to select language
@@ -114,14 +114,14 @@ class GmailConfigWindow:
                 self.cbo_langs.append_text(one_lang)
         self.cbo_langs.set_active(0)
         # Attach combobox and label
-        table.attach(self.lbl_langs, 0, 1, 8, 9)
+        table.attach(self.lbl_langs, 0, 1, 5, 6)
         self.lbl_langs.show()
-        table.attach(self.cbo_langs, 1, 2, 8, 9, ypadding=5)
+        table.attach(self.cbo_langs, 1, 2, 5, 6, ypadding=5)
         self.cbo_langs.show()
 
         # Add 'Close' button
         button = gtk.Button(stock=gtk.STOCK_OK)
-        table.attach(button, 0, 2, 10, 11, ypadding=2)
+        table.attach(button, 0, 2, 7, 8, ypadding=2)
         button.connect("clicked", self.onOkay)
         button.show()
         table.show()
@@ -166,7 +166,7 @@ class GmailConfigWindow:
         self.langs_parser = notifierlangsparser.NotifierLangsParser(LANGSXML_PATH)
         self.langs = self.langs_parser.get_langs()
         self.lang = self.langs_parser.get_lang(self.options["lang"])
-        print "Configuration read (" + self.loadedConfig + ")"
+        print "Configuration read (%s)" % self.loadedConfig
 
     def getOptions(self):
         return self.options
@@ -191,7 +191,7 @@ class GmailConfigWindow:
                 try:
                     self.options[curElement[0]] = int(curElement[2].get_text())
                 except:
-                    errorMessage = "Option '" + curElement[3].get_text() + "' has not integer value!"
+                    errorMessage = "Option '%s' has not integer value!" % curElement[3].get_text()
                     break
             else:
                 self.options[curElement[0]] = curElement[2].get_text()
@@ -243,6 +243,9 @@ class GmailConfigWindow:
 
     def get_lang(self):
         return self.lang
+
+    def get_lang_name(self):
+        return self.options["lang"]
 
     def main(self):
         gtk.main()
