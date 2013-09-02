@@ -45,11 +45,12 @@ class GmailNotify:
         self.maintimer = None
         # Create the tray icon object
         self.tray = gtk.StatusIcon()
-        self.tray.set_title(self.lang["program_name"])
+        self.tray.set_title(self.lang["program"])
         self.tray.connect("button_press_event", self.tray_icon_clicked)
         # Set the image for the tray icon
         self.icon_empty = gtk.gdk.pixbuf_new_from_file(ICON_PATH_EMPTY)
         self.icon_unread = gtk.gdk.pixbuf_new_from_file(ICON_PATH_UNREAD)
+        self.icon_warning = gtk.gdk.pixbuf_new_from_file(ICON_PATH_WARNING)
         self.icon_size = self.tray.get_size()
         scaled_buf = self.scale_icon_to_system_tray(self.icon_empty)
         self.tray.set_from_pixbuf(scaled_buf)
@@ -63,20 +64,18 @@ class GmailNotify:
         return icon.scale_simple(self.icon_size, self.icon_size, gtk.gdk.INTERP_BILINEAR)
 
     def warning_message(self, text):
-        subprocess.call(['notify-send', self.lang["program_name"], text, "-i", ICON_PATH_WARNING, "-t", str(self.options["popuptimespan"])])
+        subprocess.call(['notify-send', self.lang["program"], text, "-i", ICON_PATH_WARNING, "-t", str(self.options["popuptimespan"])])
 
     def show_new_messages(self, mails, new=True):
         l = len(mails)
         if l > 0:
             if new:
-                text = self.lang["new_message"] % l
+                text = self.lang["messages_new"] % l
             else:
-                text = self.lang["unread_message"] % l
-            if l > 1:
-                text += "s\n"
+                text = self.lang["messages_unread"] % l
             for mail in mails:
-                text += "\n<b>" + self.lang["mail"] % ("</b>%s<%s><b>" % (mail.author_name, mail.author_addr), "</b>%s<b>" % mail.title, "</b>" + mail.summary) + "\n"
-            subprocess.call(['notify-send', self.lang["program_name"], text, "-i", ICON_PATH_NEW, "-t", str(self.options["popuptimespan"])])
+                text += "\n<b>" + self.lang["message"] % ("</b>%s<%s><b>" % (mail.author_name, mail.author_addr), "</b>%s<b>" % mail.title, "</b>" + mail.summary) + "\n"
+            subprocess.call(['notify-send', self.lang["program"], text, "-i", ICON_PATH_NEW, "-t", str(self.options["popuptimespan"])])
             if new:
                 subprocess.call(['aplay', SOUND_PATH_INCOMING])
 
@@ -98,35 +97,39 @@ class GmailNotify:
 
     def connect(self):
         logging.info("Trying to connect...")
-        self.tray.set_tooltip(self.lang["connecting"])
+        self.tray.set_tooltip(self.lang["connect_on"])
         while gtk.events_pending():
             gtk.main_iteration(gtk.TRUE)
         self.connection = notifieratom.GmailAtom(self.options['gmailusername'], self.options['gmailpassword'])
         self.status = self.connection.refreshInfo()
         if self.status == self.consts.get_nologin():
             logging.info("No login/password")
-            self.tray.set_tooltip_text(self.lang["nologin"])
-            self.warning_message(self.lang["nologin"])
+            self.tray.set_tooltip_text(self.lang["connect_nologin"])
+            self.warning_message(self.lang["connect_nologin"])
+            self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             self.started = False
         if self.status == self.consts.get_auterror():
             logging.info("Wrong login/password")
-            self.tray.set_tooltip_text(self.lang["autherror"])
-            self.warning_message(self.lang["autherror"])
+            self.tray.set_tooltip_text(self.lang["connect_autherror"])
+            self.warning_message(self.lang["connect_autherror"])
+            self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             self.started = False
         if self.status == self.consts.get_connectionerror():
             logging.info("Connection error")
-            self.tray.set_tooltip_text(self.lang["connerror"])
-            self.warning_message(self.lang["connerror"])
+            self.tray.set_tooltip_text(self.lang["connect_connerror"])
+            self.warning_message(self.lang["connect_connerror"])
+            self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             self.started = True
         if self.status == self.consts.get_parseerror():
             logging.info("Parsing error")
-            self.tray.set_tooltip_text(self.lang["parseerror"])
-            self.warning_message(self.lang["parseerror"])
+            self.tray.set_tooltip_text(self.lang["connect_parseerror"])
+            self.warning_message(self.lang["connect_parseerror"])
+            self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             self.started = True
         if self.status == self.consts.get_ok():
             logging.info("Connection successful! Continuing...")
             self.started = True
-            self.tray.set_tooltip_text(self.lang["connected"])
+            self.tray.set_tooltip_text(self.lang["connect_done"])
             self.maintimer = gtk.timeout_add(self.options['checkinterval'], self.mail_check)
             self.mail_check()
 
@@ -158,9 +161,7 @@ class GmailNotify:
                     logging.info("New message!")
                     to_show.append(mail)
             self.show_new_messages(to_show)
-            text = self.lang["unread_message"] % messages_count
-            if messages_count > 0:
-                text += "s"
+            text = self.lang["messages_unread"] % messages_count
             self.tray.set_tooltip_text(text)
             pixmap = self.scale_icon_to_system_tray(self.icon_unread).render_pixmap_and_mask(alpha_threshold=127)[0]
             label = gtk.Label(str(messages_count))
@@ -182,7 +183,7 @@ class GmailNotify:
                 self.show_new_messages(messages, new=False)
         else:
             logging.info("No new messages")
-            self.tray.set_tooltip_text(self.lang["no unread"])
+            self.tray.set_tooltip_text(self.lang["messages_empty"])
             pixbuf = self.icon_empty
         scaled_buf = self.scale_icon_to_system_tray(pixbuf)
         self.tray.set_from_pixbuf(scaled_buf)
@@ -194,25 +195,29 @@ class GmailNotify:
         self.status = self.connection.refreshInfo()
         if self.status == self.consts.get_nologin():
             logging.info("No login/password")
-            self.tray.set_tooltip_text(self.lang["nologin"])
-            self.warning_message(self.lang["nologin"])
+            self.tray.set_tooltip_text(self.lang["config_nologin"])
+            self.warning_message(self.lang["config_nologin"])
+            self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             self.started = False
             return None
         if self.status == self.consts.get_auterror():
             logging.info("Wrong login/password")
-            self.tray.set_tooltip_text(self.lang["autherror"])
-            self.warning_message(self.lang["autherror"])
+            self.tray.set_tooltip_text(self.lang["config_autherror"])
+            self.warning_message(self.lang["config_autherror"])
+            self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             self.started = False
             return None
         if self.status == self.consts.get_connectionerror():
             logging.info("Connection error")
-            self.tray.set_tooltip_text(self.lang["connerror"])
-            self.warning_message(self.lang["connerror"])
+            self.tray.set_tooltip_text(self.lang["config_connerror"])
+            self.warning_message(self.lang["config_connerror"])
+            self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             return None
         if self.status == self.consts.get_parseerror():
             logging.info("Parsing error")
-            self.tray.set_tooltip_text(self.lang["parseerror"])
-            self.warning_message(self.lang["parseerror"])
+            self.tray.set_tooltip_text(self.lang["config_parseerror"])
+            self.warning_message(self.lang["config_parseerror"])
+            self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             return None
         if self.status == self.consts.get_ok():
             return self.connection.get_mails()
@@ -228,7 +233,7 @@ class GmailNotify:
             self.gotourl()
 
     def exit(self, event):
-        dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, self.lang["on_exit"])
+        dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, self.lang["exit"])
         dialog.width, dialog.height = dialog.get_size()
         dialog.move(gtk.gdk.screen_width() / 2 - dialog.width / 2, gtk.gdk.screen_height() / 2 - dialog.height / 2)
         ret = dialog.run()

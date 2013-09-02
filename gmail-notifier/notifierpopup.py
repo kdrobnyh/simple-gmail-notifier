@@ -9,12 +9,12 @@ class GmailPopupMenu:
     def __init__(self, gmailnotifier):
         self.const = notifierconstants.NotifierConstants()
         # Create menu items
-        self.item_check = gtk.MenuItem(gmailnotifier.lang["check"], gtk.TRUE)
-        self.item_inbox = gtk.MenuItem(gmailnotifier.lang["inbox"], gtk.TRUE)
-        self.item_start = gtk.MenuItem(gmailnotifier.lang["start_refreshing"], gtk.TRUE)
-        self.item_stop = gtk.MenuItem(gmailnotifier.lang["stop_refreshing"], gtk.TRUE)
-        self.item_conf = gtk.MenuItem(gmailnotifier.lang["configure"], gtk.TRUE)
-        self.item_exit = gtk.MenuItem(gmailnotifier.lang["exit"], gtk.TRUE)
+        self.item_check = gtk.MenuItem(gmailnotifier.lang["menu_check"], gtk.TRUE)
+        self.item_inbox = gtk.MenuItem(gmailnotifier.lang["menu_inbox"], gtk.TRUE)
+        self.item_start = gtk.MenuItem(gmailnotifier.lang["menu_refreshing_start"], gtk.TRUE)
+        self.item_stop = gtk.MenuItem(gmailnotifier.lang["menu_refreshing_stop"], gtk.TRUE)
+        self.item_conf = gtk.MenuItem(gmailnotifier.lang["menu_configure"], gtk.TRUE)
+        self.item_exit = gtk.MenuItem(gmailnotifier.lang["menu_exit"], gtk.TRUE)
 
         # Connect the events
         self.item_check.connect('activate', gmailnotifier.mail_check)

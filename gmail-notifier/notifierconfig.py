@@ -38,7 +38,7 @@ class GmailConfigWindow:
         self.readConfig()
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title(self.lang["configure_name"])
+        self.window.set_title(self.lang["config_title"])
         self.window.set_border_width(5)
         self.window.set_position(gtk.WIN_POS_CENTER)
         self.window.set_modal(gtk.TRUE)
@@ -51,11 +51,11 @@ class GmailConfigWindow:
 
         # configElements = [ [Option Name, String ID, Entry, Label ], ... ]
         self.configElements = [
-                        ["gmailusername", "username", None, None],
-                        ["gmailpassword", "password", None, None],
-                        ["browserpath", "browser", None, None],
-                        ["checkinterval", "check_interval", None, None],
-                        ["popuptimespan", "popup_time", None, None],
+                        ["gmailusername", "config_username", None, None],
+                        ["gmailpassword", "config_password", None, None],
+                        ["browserpath", "config_browser", None, None],
+                        ["checkinterval", "config_check_interval", None, None],
+                        ["popuptimespan", "config_popup_time", None, None],
                     ]
 
         # Create table and attach to window
@@ -90,7 +90,7 @@ class GmailConfigWindow:
 
         # Add checkbox to save username / pass to file
         alignment = gtk.Alignment(0.5, 0.5, 0.0, 0.0)
-        self.savePassword = gtk.CheckButton(label=self.lang["save"])
+        self.savePassword = gtk.CheckButton(label=self.lang["menu_save"])
         alignment.add(self.savePassword)
 
         if self.options["gmailusername"] is not None and self.options["gmailpassword"] is not None:
@@ -103,7 +103,7 @@ class GmailConfigWindow:
         alignment.show()
 
         # Add combobox to select language
-        self.lbl_langs = gtk.Label(self.lang["language"])
+        self.lbl_langs = gtk.Label(self.lang["menu_language"])
         self.lbl_langs.set_alignment(0, 0.5)
         self.cbo_langs = gtk.combo_box_new_text()
         self.cbo_langs.connect('changed', self.update_labels)
@@ -194,7 +194,7 @@ class GmailConfigWindow:
                 try:
                     self.options[curElement[0]] = int(curElement[2].get_text())
                 except:
-                    errorMessage = "Option '%s' has not integer value!" % curElement[3].get_text()
+                    errorMessage = self.lang["config_error_value"] % curElement[3].get_text()
                     break
             else:
                 self.options[curElement[0]] = curElement[2].get_text()
@@ -229,7 +229,7 @@ class GmailConfigWindow:
             logging.info("Can't save settings to file!")
             dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK, type=gtk.MESSAGE_WARNING)
             dialog.set_position(gtk.WIN_POS_CENTER)
-            dialog.set_markup("Can't save settings to file!")
+            dialog.set_markup(self.lang["config_error_save"])
             dialog.run()
             dialog.destroy()
             return
@@ -242,9 +242,9 @@ class GmailConfigWindow:
         self.lang = self.langs_parser.get_lang(lang_name)
         for i in range(len(self.configElements)):
             self.configElements[i][3].set_label(self.lang[self.configElements[i][1]])
-        self.lbl_langs.set_label(self.lang["language"])
-        self.savePassword.set_label(self.lang["save"])
-        self.window.set_title(self.lang["configure_name"])
+        self.lbl_langs.set_label(self.lang["config_language"])
+        self.savePassword.set_label(self.lang["config_save"])
+        self.window.set_title(self.lang["config_title"])
 
     def get_lang(self):
         return self.lang
