@@ -39,6 +39,13 @@ class Mail:
     author_name = ""
     author_addr = ""
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return (self.title == other.title and self.summary == other.summary
+                   and self.author_name == other.author_name and self.author_addr == other.author_addr)
+        else:
+            return False
+
 
 # Sax XML Handler
 class MailHandler(sax.handler.ContentHandler):
@@ -135,27 +142,31 @@ class GmailAtom:
         auth_handler.add_password(self.realm, self.host, user, pswd)
         opener = urllib2.build_opener(auth_handler)
         urllib2.install_opener(opener)
+        if not user or not pswd:
+            self.status = self.consts.get_nologin()
 
     def sendRequest(self):
         try:
             self.status = self.consts.get_ok()
-            return urllib2.urlopen(self.url, None, 200)
+            s = urllib2.urlopen(self.url, None, 200)
+            return s.read()
         except urllib2.HTTPError:
             self.status = self.consts.get_auterror()
-            print "Autentification failed!"
+            print "GmailAtom:Autentification failed!"
             return None
         except urllib2.URLError:
             self.status = self.consts.get_connectionerror()
-            print "Connection failed!"
+            print "GmailAtom:Connection failed!"
             return None
 
     def refreshInfo(self):
-        s = self.sendRequest()
-        if s is not None:
-            try:
-                sax.parseString(s.read(), self.m)
-            except:
-                return self.consts.get_parseerror()
+        if self.status is not self.consts.get_nologin():
+            s = self.sendRequest()
+            if s is not None:
+                try:
+                    sax.parseString(s, self.m)
+                except:
+                    return self.consts.get_parseerror()
         return self.status
 
     def getUnreadMsgCount(self):
@@ -172,3 +183,6 @@ class GmailAtom:
 
     def getMsgAuthorEmail(self, index):
         return self.m.getMail(index).author_email
+
+    def get_mails(self):
+        return self.m.entries

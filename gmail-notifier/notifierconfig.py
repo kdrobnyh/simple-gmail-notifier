@@ -14,7 +14,7 @@ import random
 sys.path[0] = "/home/kad/projects/git/gmail-notifier/gmail-notifier"
 #sys.path[0] = "/usr/share/gmail-notify"
 LANGSXML_PATH = sys.path[0] + "/langs.xml"
-ICON_PATH = sys.path[0] + "/gmail-notify-icon.png"
+ICON_PATH = sys.path[0] + "/gmail-notifier.png"
 CONFIG_PATH = "~/.config/gmail-notifier/gmail-notifier.conf"
 
 
@@ -25,8 +25,7 @@ class GmailConfigWindow:
 
     # Declare global variables for configuration as dictionary
     options = {"gmailusername": None, "gmailpassword": None, "browserpath": "chromium -U", "lang": "English",
-               "voffset": 0, "hoffset": 0, "checkinterval": 20000,
-               "animationdelay": 15, "popuptimespan": 5000}
+               "checkinterval": 20000, "popuptimespan": 5000}
 
     config = ConfigParser.RawConfigParser()
     loadedConfig = ""
@@ -176,7 +175,7 @@ class GmailConfigWindow:
         self.hide()
         return gtk.TRUE
 
-    def Mix(self, value):
+    def mix(self, value):
         val = str(value)
         res = ""
         for x in val:
@@ -215,9 +214,9 @@ class GmailConfigWindow:
             self.config.remove_option("options", "gmailpassword")
         else:
             if self.options["gmailusername"]:
-                self.config.set("options", "gmailusername", bz2.compress(self.Mix(self.options["gmailusername"])).encode('base64')[:-1])
+                self.config.set("options", "gmailusername", bz2.compress(self.mix(self.options["gmailusername"])).encode('base64')[:-1])
             if self.options["gmailpassword"]:
-                self.config.set("options", "gmailpassword", bz2.compress(self.Mix(self.options["gmailpassword"])).encode('base64')[:-1])
+                self.config.set("options", "gmailpassword", bz2.compress(self.mix(self.options["gmailpassword"])).encode('base64')[:-1])
         try:
             self.ensure_dir(self.loadedConfig)
             self.config.write(open(self.loadedConfig, 'w'))

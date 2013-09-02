@@ -12,8 +12,8 @@ class NotifierConstants:
     def get_auterror(self):
         return 2
 
-    def get_parseerror(self):
+    def get_nologin(self):
         return 3
 
-    def get_nologin(self):
+    def get_parseerror(self):
         return 4
