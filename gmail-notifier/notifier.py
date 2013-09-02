@@ -4,6 +4,7 @@
 import pygtk
 pygtk.require('2.0')
 import gtk
+import pango
 import time
 import os
 import sys
@@ -16,13 +17,12 @@ import subprocess
 
 #sys.path[0] = "/usr/share/gmail-notify"
 sys.path[0] = "/home/kad/projects/git/gmail-notifier/gmail-notifier/"
-EMPTY_ICON = sys.path[0] + "gmail-notifier-empty.png"
-UNREAD_ICON = sys.path[0] + "gmail-notifier.png"
-NEW_ICON = sys.path[0] + "gmail-notifier-new.png"
-WARNING_ICON = sys.path[0] + "gmail-notifier-warning.png"
-
-
-removetags = lambda text: text.split("<b>")[1].split("</b>")[0]
+ICON_PATH_EMPTY = sys.path[0] + "gmail-notifier-empty.png"
+ICON_PATH_UNREAD = sys.path[0] + "gmail-notifier.png"
+ICON_PATH_NEW = sys.path[0] + "gmail-notifier-new.png"
+ICON_PATH_WARNING = sys.path[0] + "gmail-notifier-warning.png"
+SOUND_PATH_INCOMING = sys.path[0] + "incoming.wav"
+#SCALE_SIZE = 128
 
 
 def shortenstring(text, characters):
@@ -53,7 +53,7 @@ class GmailNotify:
     def __init__(self):
         self.consts = notifierconstants.NotifierConstants()
         self.status = self.consts.get_nologin()
-        logging.info("Gmail Notifier v2.0.0 (" + time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()) + ")")
+        logging.info("Gmail Notifier (" + time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()) + ")")
         # Configuration window
         self.configWindow = notifierconfig.GmailConfigWindow()
         # Reference to global options
@@ -70,8 +70,10 @@ class GmailNotify:
         self.tray.set_title(self.lang["program_name"])
         self.tray.connect("button_press_event", self.tray_icon_clicked)
         # Set the image for the tray icon
-        pixbuf = gtk.gdk.pixbuf_new_from_file(EMPTY_ICON)
-        scaled_buf = pixbuf.scale_simple(24, 24, gtk.gdk.INTERP_BILINEAR)
+        self.icon_empty = gtk.gdk.pixbuf_new_from_file(ICON_PATH_EMPTY)
+        self.icon_unread = gtk.gdk.pixbuf_new_from_file(ICON_PATH_UNREAD)
+        self.icon_size = self.tray.get_size()
+        scaled_buf = self.scale_icon_to_system_tray(self.icon_empty)
         self.tray.set_from_pixbuf(scaled_buf)
         while gtk.events_pending():
             gtk.main_iteration(gtk.TRUE)
@@ -79,18 +81,26 @@ class GmailNotify:
         self.connect()
         self.popup_menu = notifierpopup.GmailPopupMenu(self)
 
-    def warning_message(self, text):
-        subprocess.call(['notify-send', self.lang["program_name"], text, "-i", WARNING_ICON, "-t", str(self.options["popuptimespan"])])
+    def scale_icon_to_system_tray(self, icon):
+        return icon.scale_simple(self.icon_size, self.icon_size, gtk.gdk.INTERP_BILINEAR)
 
-    def show_new_messages(self, mails):
+    def warning_message(self, text):
+        subprocess.call(['notify-send', self.lang["program_name"], text, "-i", ICON_PATH_WARNING, "-t", str(self.options["popuptimespan"])])
+
+    def show_new_messages(self, mails, new=True):
         l = len(mails)
         if l > 0:
-            text = self.lang["new_message"] % l
-            if l == 1:
-                text += "\n" + self.lang["new_mail"] % (mails[0].author_name, mails[0].title) + "\n"
+            if new:
+                text = self.lang["new_message"] % l
             else:
+                text = self.lang["unread_message"] % l
+            if l > 1:
                 text += "s\n"
-            subprocess.call(['notify-send', self.lang["program_name"], text, "-i", NEW_ICON, "-t", str(self.options["popuptimespan"])])
+            for mail in mails:
+                text += "\n<b>" + self.lang["mail"] % ("</b>%s<%s><b>" % (mail.author_name, mail.author_addr), "</b>%s<b>" % mail.title, "</b>" + mail.summary) + "\n"
+            subprocess.call(['notify-send', self.lang["program_name"], text, "-i", ICON_PATH_NEW, "-t", str(self.options["popuptimespan"])])
+            if new:
+                subprocess.call(['aplay', SOUND_PATH_INCOMING])
 
     def start_update(self, event=None):
         self.popup_menu = notifierpopup.GmailPopupMenu(self)
@@ -142,7 +152,7 @@ class GmailNotify:
             self.maintimer = gtk.timeout_add(self.options['checkinterval'], self.mail_check)
             self.mail_check()
 
-    def mail_check(self, event=None):
+    def mail_check(self, event=None, unread=False):
         # If checking, cancel mail check
         if self.mailcheck:
             logging.info("Mailcheck is already run")
@@ -170,13 +180,49 @@ class GmailNotify:
                     logging.info("New message!")
                     to_show.append(mail)
             self.show_new_messages(to_show)
-            pixbuf = gtk.gdk.pixbuf_new_from_file(UNREAD_ICON)
+            text = self.lang["unread_message"] % messages_count
+            if messages_count > 0:
+                text += "s"
+            self.tray.set_tooltip_text(text)
+            pixmap = self.scale_icon_to_system_tray(self.icon_unread).render_pixmap_and_mask(alpha_threshold=127)[0]
+            label = gtk.Label(str(messages_count))
+            textLay = label.create_pango_layout("")
+            #font = pango.FontDescription("Sans bold " + str(self.icon_size / 3))
+            #textLay.set_font_description(font)
+            textLay.set_markup('<span font_desc="Sans bold %i" foreground="#010101">%s</span>' % (self.icon_size / 3, str(messages_count)))
+            (text_w, text_h) = textLay.get_pixel_size()
+            x = 2 * (self.icon_size - text_w) / 3
+            y = self.icon_size / 4 + int((0.9 * self.icon_size - text_h) / 2)
+
+            ## Finally draw the text and apply in status icon
+            pixmap.draw_layout(pixmap.new_gc(), x, y, textLay)  # foreground, background)
+            trayPixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.icon_size, self.icon_size)
+            trayPixbuf.get_from_drawable(pixmap, pixmap.get_colormap(), 0, 0, 0, 0, self.icon_size, self.icon_size)
+            pixbuf = trayPixbuf.add_alpha(True, 0, 0, 0)
+            #cmap = gtk.gdk.Colormap(gtk.gdk.visual_get_system(), False)
+
+            #w, h = pixbuf2.get_width(), pixbuf2.get_height()
+            #drawable = gtk.gdk.Pixmap(None, w, h, 24)
+            #drawable.set_colormap = cmap
+            #gc = drawable.new_gc()
+            #drawable.draw_pixbuf(gc, pixbuf2, 0, 0, 0, 0, w, h)
+            #font = gtk.gdk.Font("-adobe-helvetica-bold-r-normal--12-120-75-75-p-70-iso8859-1")
+            #drawable.draw_string = (gtk.Label("H").get_style().font_desc, gc, 0, 0, str(messages_count))
+            #area = gtk.DrawingArea()
+            #area.set_size_request(w, h)
+            #layout = area.create_pango_layout(str(messages_count))
+            #layout.set_text(str(messages_count))
+            #drawable.draw_layout(gc, 0, 0, layout)
+            #pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, w, h)
+            #pixbuf.get_from_drawable(drawable, cmap, 0, 0, 0, 0, w, h)
             self.mails = messages
+            if unread:
+                self.show_new_messages(messages, new=False)
         else:
             logging.info("No new messages")
             self.tray.set_tooltip_text(self.lang["no unread"])
-            pixbuf = gtk.gdk.pixbuf_new_from_file(EMPTY_ICON)
-        scaled_buf = pixbuf.scale_simple(24, 24, gtk.gdk.INTERP_BILINEAR)
+            pixbuf = self.icon_empty
+        scaled_buf = self.scale_icon_to_system_tray(pixbuf)
         self.tray.set_from_pixbuf(scaled_buf)
         self.mailcheck = False
         return gtk.TRUE
@@ -213,7 +259,7 @@ class GmailNotify:
         if event.button == 3:
             self.popup_menu.show_menu(event)
         else:
-            self.mail_check()
+            self.mail_check(unread=True)
 
     def event_box_clicked(self, signal, event):
         if event.button == 1:

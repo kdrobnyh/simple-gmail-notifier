@@ -23,8 +23,9 @@
 		<string id="parseerror">Parsing error</string>
 		<string id="connected">Connected</string>
 		<string id="no_unread">No unread mail</string>
-		<string id="new_mail">New mail from %s, \nSubject: %s</string>
+		<string id="mail">From: %s\nSubject: %s\nBody: %s</string>
 		<string id="new_message">You have %i new message</string>
+		<string id="unread_message">You have %i unread message</string>
 		<string id="on_exit" >Are you sure do you want to leave Gmail Notifier?</string>
 		<string id="1" >Gmail Notifier Config</string>
 		<string id="2" >Username:</string>
