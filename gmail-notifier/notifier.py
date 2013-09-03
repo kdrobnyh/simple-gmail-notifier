@@ -26,7 +26,7 @@ SOUND_PATH_INCOMING = sys.path[0] + "incoming.wav"
 class GmailNotify:
     configWindow = None
     consts = None
-    started = True
+    started = False
 
     def __init__(self):
         self.consts = notifierconstants.NotifierConstants()
@@ -195,28 +195,28 @@ class GmailNotify:
         self.status = self.connection.refreshInfo()
         if self.status == self.consts.get_nologin():
             logging.info("No login/password")
-            self.tray.set_tooltip_text(self.lang["config_nologin"])
-            self.warning_message(self.lang["config_nologin"])
+            self.tray.set_tooltip_text(self.lang["connect_nologin"])
+            self.warning_message(self.lang["connect_nologin"])
             self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             self.started = False
             return None
         if self.status == self.consts.get_auterror():
             logging.info("Wrong login/password")
-            self.tray.set_tooltip_text(self.lang["config_autherror"])
-            self.warning_message(self.lang["config_autherror"])
+            self.tray.set_tooltip_text(self.lang["connect_autherror"])
+            self.warning_message(self.lang["connect_autherror"])
             self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             self.started = False
             return None
         if self.status == self.consts.get_connectionerror():
             logging.info("Connection error")
-            self.tray.set_tooltip_text(self.lang["config_connerror"])
-            self.warning_message(self.lang["config_connerror"])
+            self.tray.set_tooltip_text(self.lang["connect_connerror"])
+            self.warning_message(self.lang["connect_connerror"])
             self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             return None
         if self.status == self.consts.get_parseerror():
             logging.info("Parsing error")
-            self.tray.set_tooltip_text(self.lang["config_parseerror"])
-            self.warning_message(self.lang["config_parseerror"])
+            self.tray.set_tooltip_text(self.lang["connect_parseerror"])
+            self.warning_message(self.lang["connect_parseerror"])
             self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
             return None
         if self.status == self.consts.get_ok():
