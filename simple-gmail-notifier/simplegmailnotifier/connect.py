@@ -28,15 +28,12 @@ class Mail(object):
 
 class MailHandler(sax.handler.ContentHandler):
     TAG_FEED = "feed"
-    #TAG_FULLCOUNT = "fullcount"
     TAG_ENTRY = "entry"
     TAG_TITLE = "title"
     TAG_SUMMARY = "summary"
     TAG_AUTHOR = "author"
     TAG_NAME = "name"
     TAG_EMAIL = "email"
-
-    #PATH_FULLCOUNT = [TAG_FEED, TAG_FULLCOUNT]
     PATH_TITLE = [TAG_FEED, TAG_ENTRY, TAG_TITLE]
     PATH_SUMMARY = [TAG_FEED, TAG_ENTRY, TAG_SUMMARY]
     PATH_AUTHOR_NAME = [TAG_FEED, TAG_ENTRY, TAG_AUTHOR, TAG_NAME]
@@ -48,7 +45,6 @@ class MailHandler(sax.handler.ContentHandler):
     def startDocument(self):
         self.mails = []
         self.actual_path = []
-        #self.mail_count = "0"
 
     def startElement(self, name, attrs):
         self.actual_path.append(name)
@@ -61,9 +57,6 @@ class MailHandler(sax.handler.ContentHandler):
         self.actual_path.pop()
 
     def characters(self, content):
-        #if (self.actual_path == self.PATH_FULLCOUNT):
-        #    self.mail_count = self.mail_count + content
-
         if (self.actual_path == self.PATH_TITLE):
             temp_mail = self.mails.pop()
             temp_mail.title = temp_mail.title + content
@@ -94,6 +87,7 @@ class Receiver(object):
     status = constants.get_ok()
 
     def __init__(self, user, pswd):
+        logging.debug("Creating receiver")
         self.m = MailHandler()
         auth_handler = urllib2.HTTPBasicAuthHandler()
         auth_handler.add_password(self.realm, self.host, user, pswd)
@@ -118,6 +112,7 @@ class Receiver(object):
             return None
 
     def refresh(self):
+        logging.debug("Refreshing mails")
         if self.status is not self.constants.get_nologin():
             s = self.get_mails_data()
             if s is not None:

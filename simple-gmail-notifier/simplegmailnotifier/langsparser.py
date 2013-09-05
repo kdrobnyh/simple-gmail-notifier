@@ -33,11 +33,13 @@ class LangHandler(sax.handler.ContentHandler):
 
 class LangsParser(object):
     def __init__(self, filename):
+        logging.debug("Trying to parse langs.xml")
         self.lh = LangHandler()
-        sax.parse(filename, self.lh)
-        logging.info("XML file succesfully parsed")
-        #except:
-        #    logging.info("Error parsing XML file")
+        try:
+            sax.parse(filename, self.lh)
+            logging.info("XML file succesfully parsed")
+        except:
+            logging.info("Error parsing XML file")
 
     def get_lang(self, langname):
         return self.lh.langs[langname]

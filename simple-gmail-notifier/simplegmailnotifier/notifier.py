@@ -54,7 +54,6 @@ class Notifier(object):
             gtk.main_iteration(gtk.TRUE)
         self.connection = Receiver(self.options['gmailusername'], self.options['gmailpassword'])
         self.start_update()
-        self.popup_menu = PopupMenu(self)
 
     def scale_icon_to_system_tray(self, icon):
         return icon.scale_simple(self.icon_size, self.icon_size, gtk.gdk.INTERP_BILINEAR)
@@ -65,7 +64,7 @@ class Notifier(object):
     def show_new_messages(self, mails, new=True):
         l = len(mails)
         if l > 0:
-            text = self.lang["messages_new"] % l if new else self.lang["messages_unread"] % l
+            text = "<b>%s</b>\n" % (self.lang["messages_new"] % l if new else self.lang["messages_unread"] % l)
             for mail in mails:
                 text += "\n<b>" + self.lang["message"] % ("</b>%s<%s><b>" % (mail.author_name, mail.author_addr), "</b>%s<b>" % mail.title, "</b>" + mail.summary) + "\n"
             subprocess.call(['notify-send', self.lang["program"], text, "-i", self.icon_path_new, "-t", str(self.options["popuptimespan"])])
@@ -73,6 +72,7 @@ class Notifier(object):
                 subprocess.call(['aplay', self.sound_path_incoming])
 
     def start_update(self, event=None):
+        logging.debug("Starting update")
         if not self.started:
             self.mail_check()
             if self.status == self.constants.get_ok():
@@ -81,6 +81,7 @@ class Notifier(object):
                 self.popup_menu = PopupMenu(self)
 
     def stop_update(self, event=None):
+        logging.debug("Stopping update")
         if self.started:
             gtk.timeout_remove(self.maintimer)
             self.started = False
@@ -119,6 +120,7 @@ class Notifier(object):
                     trayPixbuf.get_from_drawable(pixmap, pixmap.get_colormap(), 0, 0, 0, 0, self.icon_size, self.icon_size)
                     pixbuf = trayPixbuf.add_alpha(True, 0, 0, 0)
                     self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(pixbuf))
+                    logging.debug("Updating picture")
                 if unread:
                     self.show_new_messages(messages, new=False)
             else:
@@ -126,6 +128,8 @@ class Notifier(object):
                 if not (len(self.mails) == 0 and self.status == self.constants.get_ok()):
                     self.tray.set_tooltip_text(self.lang["messages_empty"])
                     self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_empty))
+                    logging.debug("Updating picture")
+            self.popup_menu = PopupMenu(self)
             self.status = status
             self.mails = messages
             self.mailcheck = False
@@ -141,9 +145,10 @@ class Notifier(object):
             if self.status == self.constants.get_ok():
                 self.mails = []
                 self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
+                logging.debug("Updating picture")
             if self.started and (status == self.constants.get_nologin() or status == self.constants.get_auterror()):
                 self.started = False
-                self.popup_menu = PopupMenu(self)
+            self.popup_menu = PopupMenu(self)
             self.status = status
             self.mailcheck = False
             return gtk.FALSE
@@ -171,24 +176,21 @@ class Notifier(object):
         else:
             self.mail_check(unread=True)
 
-    def event_box_clicked(self, signal, event):
-        if event.button == 1:
-            self.gotourl()
-
     def exit(self, event):
         dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, self.lang["exit"])
-        #dialog.width, dialog.height = dialog.get_size()
-        dialog.move(gtk.gdk.screen_width() / 2 - dialog.width / 2, gtk.gdk.screen_height() / 2 - dialog.height / 2)
+        dialog.set_position(gtk.WIN_POS_CENTER)
+        dialog.set_title(self.lang["program"])
         ret = dialog.run()
         if(ret == gtk.RESPONSE_YES):
             gtk.main_quit(0)
         dialog.destroy()
 
-    def gotourl(self):
+    def gotourl(self, event):
         logging.info("launching browser " + self.options['browserpath'] + " http://gmail.google.com")
         os.system(self.options['browserpath'] + " http://gmail.google.com &")
 
     def update_config(self, event=None):
+        logging.debug("Updating config")
         if self.started:
             gtk.timeout_remove(self.maintimer)
         self.config.show()

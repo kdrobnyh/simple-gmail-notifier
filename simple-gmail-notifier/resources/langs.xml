@@ -49,7 +49,7 @@
 		<string id="config_error_save">Не могу сохранить настройки в файл!</string>
 		<string id="config_error_value">Значение параметра '%s' должно быть целым!</string>
 		<string id="connect_on">Соединение...</string>
-		<string id="connect_nologin">Пожалуйста, задайте имя пользователя и пароль/string>
+		<string id="connect_nologin">Пожалуйста, задайте имя пользователя и пароль</string>
 		<string id="connect_autherror">Неправильные имя пользователя/пароль</string>
 		<string id="connect_connerror">Не удается подключиться</string>
 		<string id="connect_parseerror">Ошибка разбора</string>

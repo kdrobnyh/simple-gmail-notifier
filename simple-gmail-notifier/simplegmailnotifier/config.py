@@ -23,8 +23,9 @@ class ConfigWindow(object):
     langs_parser = None
 
     def __init__(self, path):
+        logging.debug("Creating configuration dialog")
         self.lang_path = path + "resources/langs.xml"
-        self.icon_path = path + "resources/icons/notempty.png"
+        self.icon_path = path + "resources/icons/small.png"
         self.config_path = os.path.expanduser("~/.config/simple-gmail-notifier/notifier.conf")
         self.read_config()
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -42,47 +43,35 @@ class ConfigWindow(object):
                         ["gmailpassword", "config_password", None, None],
                         ["browserpath", "config_browser", None, None],
                         ["checkinterval", "config_check_interval", None, None],
-                        ["popuptimespan", "config_popup_time", None, None],
-                    ]
-
+                        ["popuptimespan", "config_popup_time", None, None]]
         table = gtk.Table(rows=8, columns=2, homogeneous=gtk.FALSE)
         self.window.add(table)
-
         for i, element in enumerate(self.elements):
             element_name = element[0]
-
             label = gtk.Label(self.lang[element[1]])
             label.set_alignment(0, 0.5)
             textbox = gtk.Entry(max=0)
-
             if self.options[element_name] is not None:
                 textbox.set_text(str(self.options[element_name]))
-
             if element_name == "gmailpassword":
                 textbox.set_visibility(gtk.FALSE)
                 textbox.set_invisible_char('*')
-
             element[2] = textbox
             element[3] = label
-
             table.attach(label, 0, 1, i, i + 1, xpadding=2, ypadding=1)
             table.attach(textbox, 1, 2, i, i + 1, xpadding=2, ypadding=1)
             label.show()
             textbox.show()
-
         alignment = gtk.Alignment(0.5, 0.5, 0.0, 0.0)
         self.save = gtk.CheckButton(label=self.lang["menu_save"])
         alignment.add(self.save)
-
         if self.options["gmailusername"] is not None and self.options["gmailpassword"] is not None:
             self.save.set_active(gtk.TRUE)
         else:
             self.save.set_active(gtk.FALSE)
-
         self.save.show()
         table.attach(alignment, 0, 2, 6, 7)
         alignment.show()
-
         self.lbl_langs = gtk.Label(self.lang["menu_language"])
         self.lbl_langs.set_alignment(0, 0.5)
         self.cbo_langs = gtk.combo_box_new_text()
@@ -93,12 +82,10 @@ class ConfigWindow(object):
             else:
                 self.cbo_langs.append_text(one_lang)
         self.cbo_langs.set_active(0)
-
         table.attach(self.lbl_langs, 0, 1, 5, 6)
         self.lbl_langs.show()
         table.attach(self.cbo_langs, 1, 2, 5, 6, ypadding=5)
         self.cbo_langs.show()
-
         button = gtk.Button(stock=gtk.STOCK_OK)
         table.attach(button, 0, 2, 7, 8, ypadding=2)
         button.connect("clicked", self.on_ok)
@@ -124,17 +111,16 @@ class ConfigWindow(object):
             os.makedirs(d)
 
     def read_config(self):
-        logging.info("Reading configuration")
+        logging.debug("Reading configuration")
         self.config = ConfigParser.RawConfigParser()
         files = self.config.read(self.config_path)
-        if (len(files) == 1):
+        if len(files) == 1:
             self.loaded_config = files[0]
             logging.info("Configuration file opened")
         else:
             self.config.add_section("options")
             logging.info("Configuration file is not exist. Creating...")
         self.loaded_config = self.config_path
-        # Check which options are defined and override defaults
         for key in self.options.keys():
             if (self.config.has_option('options', key)):
                 if (type(self.options[key]) == int):
@@ -160,12 +146,10 @@ class ConfigWindow(object):
     def mix(self, value):
         val = str(value)
         length = len(val)
-        #res = ""
-        #for x in val:
-        #    res += x + val[random.randrange(len(val))]
         return "".join([x + val[random.randrange(length)] for x in val])
 
     def on_ok(self, widget, callback_data=None):
+        logging.debug("Saving configuration")
         message = None
         for element in self.elements:
             if (type(self.options[element[0]]) == int):
@@ -176,11 +160,11 @@ class ConfigWindow(object):
                     break
             else:
                 self.options[element[0]] = element[2].get_text()
-
         if message:
             logging.info(message)
             dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK, type=gtk.MESSAGE_ERROR)
             dialog.set_position(gtk.WIN_POS_CENTER)
+            dialog.set_title(self.lang["program"])
             dialog.set_markup(message)
             dialog.run()
             dialog.destroy()
@@ -207,6 +191,7 @@ class ConfigWindow(object):
             logging.info("Can't save settings to file!")
             dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK, type=gtk.MESSAGE_WARNING)
             dialog.set_position(gtk.WIN_POS_CENTER)
+            dialog.set_title(self.lang["program"])
             dialog.set_markup(self.lang["config_error_save"])
             dialog.run()
             dialog.destroy()
