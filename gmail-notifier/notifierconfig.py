@@ -19,7 +19,7 @@ ICON_PATH = sys.path[0] + "/gmail-notifier-unread.png"
 CONFIG_PATH = "~/.config/gmail-notifier/gmail-notifier.conf"
 
 
-class GmailConfigWindow:
+class GmailConfigWindow(object):
 
     # Public variables
     configElements = None

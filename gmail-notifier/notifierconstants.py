@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-class NotifierConstants:
+class NotifierConstants(object):
     def get_ok(self):
         return 0
 

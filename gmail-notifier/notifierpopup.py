@@ -5,7 +5,7 @@ import gtk
 import notifierconstants
 
 
-class GmailPopupMenu:
+class GmailPopupMenu(object):
     def __init__(self, gmailnotifier):
         self.const = notifierconstants.NotifierConstants()
         # Create menu items
@@ -15,7 +15,6 @@ class GmailPopupMenu:
         self.item_stop = gtk.MenuItem(gmailnotifier.lang["menu_refreshing_stop"], gtk.TRUE)
         self.item_conf = gtk.MenuItem(gmailnotifier.lang["menu_configure"], gtk.TRUE)
         self.item_exit = gtk.MenuItem(gmailnotifier.lang["menu_exit"], gtk.TRUE)
-
         # Connect the events
         self.item_check.connect('activate', gmailnotifier.mail_check)
         self.item_inbox.connect('activate', gmailnotifier.gotourl)
@@ -24,9 +23,8 @@ class GmailPopupMenu:
         self.item_conf.connect('activate', gmailnotifier.update_config)
         self.item_exit.connect('activate', gmailnotifier.exit)
         # Create the menu
-
         self.menu = gtk.Menu()
-        if gmailnotifier.status != self.const.get_nologin():
+        if not gmailnotifier.status == self.const.get_nologin():
             self.menu.append(self.item_check)
             self.menu.append(self.item_inbox)
             self.menu.append(gtk.SeparatorMenuItem())

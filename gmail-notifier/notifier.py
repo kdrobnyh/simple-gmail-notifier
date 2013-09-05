@@ -23,7 +23,7 @@ ICON_PATH_WARNING = sys.path[0] + "gmail-notifier-warning.png"
 SOUND_PATH_INCOMING = sys.path[0] + "incoming.wav"
 
 
-class GmailNotify:
+class GmailNotify(object):
     configWindow = None
     consts = None
     started = False
@@ -69,10 +69,7 @@ class GmailNotify:
     def show_new_messages(self, mails, new=True):
         l = len(mails)
         if l > 0:
-            if new:
-                text = self.lang["messages_new"] % l
-            else:
-                text = self.lang["messages_unread"] % l
+            text = self.lang["messages_new"] % l if new else self.lang["messages_unread"] % l
             for mail in mails:
                 text += "\n<b>" + self.lang["message"] % ("</b>%s<%s><b>" % (mail.author_name, mail.author_addr), "</b>%s<b>" % mail.title, "</b>" + mail.summary) + "\n"
             subprocess.call(['notify-send', self.lang["program"], text, "-i", ICON_PATH_NEW, "-t", str(self.options["popuptimespan"])])
@@ -154,12 +151,10 @@ class GmailNotify:
 
         messages_count = len(messages)
         if messages_count > 0:
-            to_show = []
             logging.info("You have %i unread messages" % messages_count)
-            for mail in messages:
-                if mail not in self.mails:
-                    logging.info("New message!")
-                    to_show.append(mail)
+            to_show = [mail for mail in messages if mail not in self.mails]
+            if to_show:
+                logging.info("You receive %i new messages!" % len(to_show))
             self.show_new_messages(to_show)
             text = self.lang["messages_unread"] % messages_count
             self.tray.set_tooltip_text(text)
@@ -176,7 +171,6 @@ class GmailNotify:
             trayPixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, self.icon_size, self.icon_size)
             trayPixbuf.get_from_drawable(pixmap, pixmap.get_colormap(), 0, 0, 0, 0, self.icon_size, self.icon_size)
             pixbuf = trayPixbuf.add_alpha(True, 0, 0, 0)
-            #cmap = gtk.gdk.Colormap(gtk.gdk.visual_get_system(), False)
 
             self.mails = messages
             if unread:

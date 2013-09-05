@@ -34,11 +34,13 @@ import logging
 
 
 # Auxiliar structure
-class Mail:
-    title = ""
-    summary = ""
-    author_name = ""
-    author_addr = ""
+class Mail(object):
+
+    def __init__(self):
+        self.title = ""
+        self.summary = ""
+        self.author_name = ""
+        self.author_addr = ""
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -128,7 +130,7 @@ class MailHandler(sax.handler.ContentHandler):
 
 
 # The mail class
-class GmailAtom:
+class GmailAtom(object):
 
     realm = "New mail feed"
     host = "https://mail.google.com"
@@ -149,8 +151,9 @@ class GmailAtom:
     def sendRequest(self):
         try:
             self.status = self.consts.get_ok()
-            s = urllib2.urlopen(self.url, None, 200)
-            return s.read()
+            s = urllib2.urlopen(self.url, None, 200).read()
+            urllib2
+            return s
         except urllib2.HTTPError:
             self.status = self.consts.get_auterror()
             logging.info("Autentification failed!")

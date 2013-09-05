@@ -40,15 +40,15 @@ class LangHandler(sax.handler.ContentHandler):
             self.temp_s = attrs.getValue("id")
 
     def endElement(self, name):
-        return
+        pass
 
     def characters(self, content):
-        if content.strip() != "":
+        if not content.strip() == "":
             self.temp_lang[self.temp_s] = content
 
 
 # The main class
-class NotifierLangsParser:
+class NotifierLangsParser(object):
     def __init__(self, filename):
         self.lh = LangHandler()
         try:
