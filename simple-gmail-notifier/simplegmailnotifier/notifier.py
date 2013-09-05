@@ -30,6 +30,7 @@ class Notifier(object):
         self.icon_path_warning = path + "resources/icons/warning.png"
         self.sound_path_incoming = path + "resources/sounds/incoming.wav"
         self.constants = Constants()
+        self.critical_errors = [self.constants.get_auterror(), self.constants.get_nologin()]
         self.status = self.constants.get_nologin()
         logging.info("Simple Gmail Notifier (" + time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()) + ")")
         self.config = ConfigWindow(path)
@@ -53,13 +54,17 @@ class Notifier(object):
         while gtk.events_pending():
             gtk.main_iteration(gtk.TRUE)
         self.connection = Receiver(self.options['gmailusername'], self.options['gmailpassword'])
+        self.status = self.constants.get_ok()
         self.start_update()
 
     def scale_icon_to_system_tray(self, icon):
         return icon.scale_simple(self.icon_size, self.icon_size, gtk.gdk.INTERP_BILINEAR)
 
     def warning_message(self, text):
-        subprocess.call(['notify-send', self.lang["program"], text, "-i", self.icon_path_warning, "-t", str(self.options["popuptimespan"])])
+        try:
+            subprocess.call(['notify-send', self.lang["program"], text, "-i", self.icon_path_warning, "-t", str(self.options["popuptimespan"])])
+        except:
+            logging.info("Notifier error")
 
     def show_new_messages(self, mails, new=True):
         l = len(mails)
@@ -67,9 +72,15 @@ class Notifier(object):
             text = "<b>%s</b>\n" % (self.lang["messages_new"] % l if new else self.lang["messages_unread"] % l)
             for mail in mails:
                 text += "\n<b>" + self.lang["message"] % ("</b>%s<%s><b>" % (mail.author_name, mail.author_addr), "</b>%s<b>" % mail.title, "</b>" + mail.summary) + "\n"
-            subprocess.call(['notify-send', self.lang["program"], text, "-i", self.icon_path_new, "-t", str(self.options["popuptimespan"])])
+            try:
+                subprocess.call(['notify-send', self.lang["program"], text, "-i", self.icon_path_new, "-t", str(self.options["popuptimespan"])])
+            except:
+                logging.info("Notifier error")
             if new:
-                subprocess.call(['aplay', self.sound_path_incoming])
+                try:
+                    subprocess.call(['aplay', self.sound_path_incoming])
+                except:
+                    logging.info("Play sound error")
 
     def start_update(self, event=None):
         logging.debug("Starting update")
@@ -129,29 +140,29 @@ class Notifier(object):
                     self.tray.set_tooltip_text(self.lang["messages_empty"])
                     self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_empty))
                     logging.debug("Updating picture")
-            self.popup_menu = PopupMenu(self)
             self.status = status
+            self.popup_menu = PopupMenu(self)
             self.mails = messages
             self.mailcheck = False
             return gtk.TRUE
         else:
-            if not status == self.status:
+            if not status == self.status or unread:
                 message = self.lang["connect_nologin"] if status == self.constants.get_nologin() else \
                           self.lang["connect_autherror"] if status == self.constants.get_auterror() else \
                           self.lang["connect_parseerror"] if status == self.constants.get_parseerror() else \
-                          self.lang["connect_nologin"]
+                          self.lang["connect_connerror"]
                 self.tray.set_tooltip_text(message)
                 self.warning_message(message)
             if self.status == self.constants.get_ok():
                 self.mails = []
                 self.tray.set_from_pixbuf(self.scale_icon_to_system_tray(self.icon_warning))
                 logging.debug("Updating picture")
-            if self.started and (status == self.constants.get_nologin() or status == self.constants.get_auterror()):
-                self.started = False
-            self.popup_menu = PopupMenu(self)
+            if self.started and status in self.critical_errors:
+                self.stop_update()
             self.status = status
+            self.popup_menu = PopupMenu(self)
             self.mailcheck = False
-            return gtk.FALSE
+            return gtk.FALSE if status in self.critical_errors else gtk.TRUE
 
     def refresh(self):
         status = self.connection.refresh()
@@ -196,8 +207,10 @@ class Notifier(object):
         self.config.show()
         self.lang = self.config.get_lang()
         self.connection = Receiver(self.options["gmailusername"], self.options["gmailpassword"])
-        self.status = -1
-        self.mail_check()
+        if self.started:
+            self.start_update()
+        else:
+            self.mail_check()
         self.popup_menu = PopupMenu(self)
 
     def main(self):

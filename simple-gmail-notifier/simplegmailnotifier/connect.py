@@ -100,7 +100,6 @@ class Receiver(object):
         try:
             self.status = self.constants.get_ok()
             s = urllib2.urlopen(self.url, None, 200).read()
-            urllib2
             return s
         except urllib2.HTTPError:
             self.status = self.constants.get_auterror()

@@ -4,6 +4,8 @@
 # Based on the Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
 # Maintainer: Klim Drobnyh <klim.drobnyh@gmail.com>
 
+import pygtk
+pygtk.require('2.0')
 import gtk
 import logging
 from .constants import Constants
