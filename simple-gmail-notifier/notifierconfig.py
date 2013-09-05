@@ -1,5 +1,8 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+
+# This project based on Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
+# Maintainer: Klim Drobnyh <klim.drobnyh@gmail.com>
 
 import pygtk
 pygtk.require('2.0')
@@ -12,11 +15,11 @@ import bz2
 import random
 import logging
 
-sys.path[0] = "/home/kad/projects/git/gmail-notifier/gmail-notifier"
+sys.path[0] = "/home/kad/projects/git/gmail-notifier/simple-gmail-notifier"
 #sys.path[0] = "/usr/share/gmail-notify"
 LANGSXML_PATH = sys.path[0] + "/langs.xml"
 ICON_PATH = sys.path[0] + "/gmail-notifier-unread.png"
-CONFIG_PATH = "~/.config/gmail-notifier/gmail-notifier.conf"
+CONFIG_PATH = "~/.config/simple-gmail-notifier/gmail-notifier.conf"
 
 
 class GmailConfigWindow(object):

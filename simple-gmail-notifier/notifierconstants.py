@@ -1,5 +1,8 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+
+# This project based on Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
+# Maintainer: Klim Drobnyh <klim.drobnyh@gmail.com>
 
 
 class NotifierConstants(object):

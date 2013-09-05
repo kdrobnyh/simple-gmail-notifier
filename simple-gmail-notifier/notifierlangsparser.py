@@ -1,23 +1,8 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# notifierlangsparser
-# Languages XML parser. Return (empty) if language or string is not exist.
-
-# Language XML file structure
-#
-# <?xml version="1.0" encoding="utf-8" ?>
-# <langs>
-#     <lang name="myLanguage">
-#         <string id="1">Here goes my first string</string>
-#         <string id="2">This is my second string</string>
-#         ...
-#     </lang>
-#     ...
-# </langs>
-#
-# by Klim Drobnyh
-# klim.drobnyh@gmail.com
+# This project based on Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
+# Maintainer: Klim Drobnyh <klim.drobnyh@gmail.com>
 
 from xml import sax
 import collections

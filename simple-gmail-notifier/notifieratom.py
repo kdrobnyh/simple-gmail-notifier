@@ -1,31 +1,8 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# gmailatom
-#
-# HOW TO USE:
-# 1) Create an instance of 'GmailAtom' class. The two arguments
-#    its constructor take are the username (including '@gmail.com')
-#    and the password.
-# 2) To retrieve the account status call 'refreshInfo()'.
-# 3) To get the unread messages count call 'getUnreadMsgCount()'.
-#    You MUST call 'refreshInfo()' at least one time before using
-#    this method or it will return zero.
-# 4) To get specific information about an unread email you must
-#    call the corresponding getter method passing to it the number
-#    of the message. The number zero represents the newest one.
-#    You MUST call 'refreshInfo()' at least one time before using any
-#    getter method or they will return an empty string.
-#    The getter methods are:
-#    getMsgTitle(index)
-#    getMsgSummary(index)
-#    getMsgAuthorName(index)
-#    getMsgAuthorEmail(index)
-#
-# by Juan Grande
-# juan.grande@gmail.com
-# modified by Klim Drobnyh
-# klim.drobnyh@gmail.com
+# This project based on Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
+# Maintainer: Klim Drobnyh <klim.drobnyh@gmail.com>
 
 from xml import sax
 import urllib2
