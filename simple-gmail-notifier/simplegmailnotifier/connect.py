@@ -28,7 +28,7 @@ class Mail(object):
 
 class MailHandler(sax.handler.ContentHandler):
     TAG_FEED = "feed"
-    TAG_FULLCOUNT = "fullcount"
+    #TAG_FULLCOUNT = "fullcount"
     TAG_ENTRY = "entry"
     TAG_TITLE = "title"
     TAG_SUMMARY = "summary"
@@ -36,7 +36,7 @@ class MailHandler(sax.handler.ContentHandler):
     TAG_NAME = "name"
     TAG_EMAIL = "email"
 
-    PATH_FULLCOUNT = [TAG_FEED, TAG_FULLCOUNT]
+    #PATH_FULLCOUNT = [TAG_FEED, TAG_FULLCOUNT]
     PATH_TITLE = [TAG_FEED, TAG_ENTRY, TAG_TITLE]
     PATH_SUMMARY = [TAG_FEED, TAG_ENTRY, TAG_SUMMARY]
     PATH_AUTHOR_NAME = [TAG_FEED, TAG_ENTRY, TAG_AUTHOR, TAG_NAME]
@@ -46,52 +46,43 @@ class MailHandler(sax.handler.ContentHandler):
         self.startDocument()
 
     def startDocument(self):
-        self.entries = list()
-        self.actual = list()
-        self.mail_count = "0"
+        self.mails = []
+        self.actual_path = []
+        #self.mail_count = "0"
 
     def startElement(self, name, attrs):
-        self.actual.append(name)
+        self.actual_path.append(name)
 
         if name == "entry":
             m = Mail()
-            self.entries.append(m)
+            self.mails.append(m)
 
     def endElement(self, name):
-        self.actual.pop()
+        self.actual_path.pop()
 
     def characters(self, content):
-        if (self.actual == self.PATH_FULLCOUNT):
-            self.mail_count = self.mail_count + content
+        #if (self.actual_path == self.PATH_FULLCOUNT):
+        #    self.mail_count = self.mail_count + content
 
-        if (self.actual == self.PATH_TITLE):
-            temp_mail = self.entries.pop()
+        if (self.actual_path == self.PATH_TITLE):
+            temp_mail = self.mails.pop()
             temp_mail.title = temp_mail.title + content
-            self.entries.append(temp_mail)
+            self.mails.append(temp_mail)
 
-        if (self.actual == self.PATH_SUMMARY):
-            temp_mail = self.entries.pop()
+        if (self.actual_path == self.PATH_SUMMARY):
+            temp_mail = self.mails.pop()
             temp_mail.summary = temp_mail.summary + content
-            self.entries.append(temp_mail)
+            self.mails.append(temp_mail)
 
-        if (self.actual == self.PATH_AUTHOR_NAME):
-            temp_mail = self.entries.pop()
+        if (self.actual_path == self.PATH_AUTHOR_NAME):
+            temp_mail = self.mails.pop()
             temp_mail.author_name = temp_mail.author_name + content
-            self.entries.append(temp_mail)
+            self.mails.append(temp_mail)
 
-        if (self.actual == self.PATH_AUTHOR_EMAIL):
-            temp_mail = self.entries.pop()
+        if (self.actual_path == self.PATH_AUTHOR_EMAIL):
+            temp_mail = self.mails.pop()
             temp_mail.author_addr = temp_mail.author_addr + content
-            self.entries.append(temp_mail)
-
-    def getUnreadMsgCount(self):
-        return int(self.mail_count)
-
-    def getMail(self, index):
-        if index < int(self.mail_count):
-            return self.entries[index]
-        else:
-            return Mail()
+            self.mails.append(temp_mail)
 
 
 class Receiver(object):
@@ -111,7 +102,7 @@ class Receiver(object):
         if not user or not pswd:
             self.status = self.constants.get_nologin()
 
-    def sendRequest(self):
+    def get_mails_data(self):
         try:
             self.status = self.constants.get_ok()
             s = urllib2.urlopen(self.url, None, 200).read()
@@ -126,9 +117,9 @@ class Receiver(object):
             logging.info("Connection failed!")
             return None
 
-    def refreshInfo(self):
+    def refresh(self):
         if self.status is not self.constants.get_nologin():
-            s = self.sendRequest()
+            s = self.get_mails_data()
             if s is not None:
                 try:
                     sax.parseString(s, self.m)
@@ -137,20 +128,5 @@ class Receiver(object):
                     return self.constants.get_parseerror()
         return self.status
 
-    def getUnreadMsgCount(self):
-        return self.m.getUnreadMsgCount()
-
-    def getMsgTitle(self, index):
-        return self.m.getMail(index).title
-
-    def getMsgSummary(self, index):
-        return self.m.getMail(index).summary
-
-    def getMsgAuthorName(self, index):
-        return self.m.getMail(index).author_name
-
-    def getMsgAuthorEmail(self, index):
-        return self.m.getMail(index).author_email
-
     def get_mails(self):
-        return self.m.entries
+        return self.m.mails
