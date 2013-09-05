@@ -1,4 +1,4 @@
 simple-gmail-notifier
 ==============
 
-This project based on Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
+Based on the Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
