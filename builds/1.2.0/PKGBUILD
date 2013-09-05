@@ -11,7 +11,7 @@ license=('GPL')
 depends=('pygtk' 'libnotify' 'alsa-utils')
 install=$pkgname.install
 source=(https://github.com/kdrobnyh/simple-gmail-notifier/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz)
-md5sums=('08594ed933036a646f31441c533ffb16')
+md5sums=('2d592e16bb72d08f1ec626fdcc31add3')
 
 build() {
   cd "$srcdir"/$pkgname
