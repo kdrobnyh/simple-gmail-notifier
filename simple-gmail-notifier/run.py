@@ -7,7 +7,7 @@
 import logging
 import os
 import sys
-sys.path[0] = "/home/kad/projects/git/simple-gmail-notifier/simple-gmail-notifier/"
+sys.path[0] = "/usr/share/simple-gmail-notifier/"
 from simplegmailnotifier.notifier import Notifier
 
 logfile = os.path.expanduser("~/.config/simple-gmail-notifier/logs")
