@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# This project based on Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
+# Based on the Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
 # Maintainer: Klim Drobnyh <klim.drobnyh@gmail.com>
 
 from xml import sax
@@ -9,7 +9,6 @@ import collections
 import logging
 
 
-# Language XML file parser
 class LangHandler(sax.handler.ContentHandler):
 
     def __init__(self):
@@ -32,8 +31,7 @@ class LangHandler(sax.handler.ContentHandler):
             self.temp_lang[self.temp_s] = content
 
 
-# The main class
-class NotifierLangsParser(object):
+class LangsParser(object):
     def __init__(self, filename):
         self.lh = LangHandler()
         try:

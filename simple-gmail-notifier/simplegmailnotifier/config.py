@@ -1,57 +1,43 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# This project based on Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
+# Based on the Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
 # Maintainer: Klim Drobnyh <klim.drobnyh@gmail.com>
 
 import pygtk
 pygtk.require('2.0')
-import os
+import bz2
 import gtk
 import ConfigParser
-import notifierlangsparser
-import sys
-import bz2
-import random
 import logging
-
-sys.path[0] = "/home/kad/projects/git/gmail-notifier/simple-gmail-notifier"
-#sys.path[0] = "/usr/share/gmail-notify"
-LANGSXML_PATH = sys.path[0] + "/langs.xml"
-ICON_PATH = sys.path[0] + "/gmail-notifier-unread.png"
-CONFIG_PATH = "~/.config/simple-gmail-notifier/gmail-notifier.conf"
+import os
+import random
+from .langsparser import LangsParser
 
 
-class GmailConfigWindow(object):
+class ConfigWindow(object):
 
-    # Public variables
     configElements = None
-
-    # Declare global variables for configuration as dictionary
     options = {"gmailusername": None, "gmailpassword": None, "browserpath": "chromium -U", "lang": "English",
                "checkinterval": 20000, "popuptimespan": 5000}
-
     config = ConfigParser.RawConfigParser()
     loadedConfig = ""
-
     langs_parser = None
 
-    def __init__(self):
-        # Read configuration
+    def __init__(self, path):
+        self.lang_path = path + "resources/langs.xml"
+        self.icon_path = path + "resources/icons/notempty.png"
+        self.config_path = os.path.expanduser("~/.config/simple-gmail-notifier/notifier.conf")
         self.readConfig()
-
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title(self.lang["config_title"])
         self.window.set_border_width(5)
         self.window.set_position(gtk.WIN_POS_CENTER)
         self.window.set_modal(gtk.TRUE)
         self.window.set_resizable(gtk.FALSE)
-        icon = gtk.gdk.pixbuf_new_from_file(ICON_PATH)
+        icon = gtk.gdk.pixbuf_new_from_file(self.icon_path)
         gtk.window_set_default_icon_list(icon)
-
-        # Register events
         self.window.connect("delete_event", self.onDelete)
-
         # configElements = [ [Option Name, String ID, Entry, Label ], ... ]
         self.configElements = [
                         ["gmailusername", "config_username", None, None],
@@ -61,12 +47,9 @@ class GmailConfigWindow(object):
                         ["popuptimespan", "config_popup_time", None, None],
                     ]
 
-        # Create table and attach to window
         table = gtk.Table(rows=8, columns=2, homogeneous=gtk.FALSE)
-
         self.window.add(table)
 
-        # Create and attach widgets
         for i in range(len(self.configElements)):
             curVar = self.configElements[i][0]
 
@@ -77,11 +60,10 @@ class GmailConfigWindow(object):
             if self.options[curVar] is not None:
                 textbox.set_text(str(self.options[curVar]))
 
-            if (curVar == "gmailpassword"):
+            if curVar == "gmailpassword":
                 textbox.set_visibility(gtk.FALSE)
                 textbox.set_invisible_char('*')
 
-            # Store widget in element array
             self.configElements[i][2] = textbox
             self.configElements[i][3] = label
             table.attach(label, 0, 1, i, i + 1, xpadding=2, ypadding=1)
@@ -91,7 +73,6 @@ class GmailConfigWindow(object):
             label.show()
             textbox.show()
 
-        # Add checkbox to save username / pass to file
         alignment = gtk.Alignment(0.5, 0.5, 0.0, 0.0)
         self.savePassword = gtk.CheckButton(label=self.lang["menu_save"])
         alignment.add(self.savePassword)
@@ -105,7 +86,6 @@ class GmailConfigWindow(object):
         table.attach(alignment, 0, 2, 6, 7)
         alignment.show()
 
-        # Add combobox to select language
         self.lbl_langs = gtk.Label(self.lang["menu_language"])
         self.lbl_langs.set_alignment(0, 0.5)
         self.cbo_langs = gtk.combo_box_new_text()
@@ -116,13 +96,12 @@ class GmailConfigWindow(object):
             else:
                 self.cbo_langs.append_text(one_lang)
         self.cbo_langs.set_active(0)
-        # Attach combobox and label
+
         table.attach(self.lbl_langs, 0, 1, 5, 6)
         self.lbl_langs.show()
         table.attach(self.cbo_langs, 1, 2, 5, 6, ypadding=5)
         self.cbo_langs.show()
 
-        # Add 'Close' button
         button = gtk.Button(stock=gtk.STOCK_OK)
         table.attach(button, 0, 2, 7, 8, ypadding=2)
         button.connect("clicked", self.onOkay)
@@ -150,14 +129,14 @@ class GmailConfigWindow(object):
     def readConfig(self):
         logging.info("Reading configuration...")
         self.config = ConfigParser.RawConfigParser()
-        readFiles = self.config.read(os.path.expanduser(CONFIG_PATH))
+        readFiles = self.config.read(self.config_path)
         if (len(readFiles) == 1):
             self.loadedConfig = readFiles[0]
             logging.info("Configuration file opened")
         else:
             self.config.add_section("options")
             logging.info("Configuration file is not exist. Creating...")
-        self.loadedConfig = os.path.expanduser(CONFIG_PATH)
+        self.loadedConfig = self.config_path
         # Check which options are defined and override defaults
         for key in self.options.keys():
             if (self.config.has_option('options', key)):
@@ -169,7 +148,7 @@ class GmailConfigWindow(object):
             if (self.config.has_option('options', key)):
                 self.options[key] = bz2.decompress(self.config.get('options', key).decode('base64'))[::2]
         # Create langs and lang objects
-        self.langs_parser = notifierlangsparser.NotifierLangsParser(LANGSXML_PATH)
+        self.langs_parser = LangsParser(self.lang_path)
         self.langs = self.langs_parser.get_langs()
         self.lang = self.langs_parser.get_lang(self.options["lang"])
         logging.info("Configuration read (%s)" % self.loadedConfig)
@@ -257,9 +236,3 @@ class GmailConfigWindow(object):
 
     def main(self):
         gtk.main()
-
-if __name__ == "__main__":
-    logging.basicConfig(format="%(module)s:%(funcName)s()  %(message)s", level=logging.DEBUG)
-    config = GmailConfigWindow()
-    config.update_labels()
-    config.show()

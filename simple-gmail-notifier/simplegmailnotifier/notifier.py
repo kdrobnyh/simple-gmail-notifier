@@ -1,42 +1,39 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# This project based on Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
+# Based on the Gmail Notifier project: http://sourceforge.net/projects/gmail-notify/
 # Maintainer: Klim Drobnyh <klim.drobnyh@gmail.com>
 
 import pygtk
 pygtk.require('2.0')
 import gtk
-import time
-import os
-import sys
-import notifierconfig
-import notifieratom
-import notifierpopup
-import notifierconstants
 import logging
+import os
 import subprocess
+import time
 
-#sys.path[0] = "/usr/share/gmail-notify"
-sys.path[0] = "/home/kad/projects/git/gmail-notifier/simple-gmail-notifier/"
-ICON_PATH_EMPTY = sys.path[0] + "gmail-notifier-empty.png"
-ICON_PATH_UNREAD = sys.path[0] + "gmail-notifier-unread.png"
-ICON_PATH_NEW = sys.path[0] + "gmail-notifier-new.png"
-ICON_PATH_WARNING = sys.path[0] + "gmail-notifier-warning.png"
-SOUND_PATH_INCOMING = sys.path[0] + "incoming.wav"
+from .config import ConfigWindow
+from .connect import Receiver
+from .popup import PopupMenu
+from .constants import Constants
 
 
-class GmailNotify(object):
+class Notifier(object):
     configWindow = None
     consts = None
     started = False
 
-    def __init__(self):
-        self.consts = notifierconstants.NotifierConstants()
+    def __init__(self, path):
+        self.icon_path_empty = path + "resources/icons/empty.png"
+        self.icon_path_notempty = path + "resources/icons/notempty.png"
+        self.icon_path_new = path + "resources/icons/new.png"
+        self.icon_path_warning = path + "resources/icons/warning.png"
+        self.sound_path_incoming = path + "resources/sounds/incoming.wav"
+        self.consts = Constants()
         self.status = self.consts.get_nologin()
-        logging.info("Gmail Notifier (" + time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()) + ")")
+        logging.info("Simple Gmail Notifier (" + time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()) + ")")
         # Configuration window
-        self.configWindow = notifierconfig.GmailConfigWindow()
+        self.configWindow = ConfigWindow(path)
         # Reference to global options
         self.options = self.configWindow.options
         # Load selected language
@@ -51,9 +48,10 @@ class GmailNotify(object):
         self.tray.set_title(self.lang["program"])
         self.tray.connect("button_press_event", self.tray_icon_clicked)
         # Set the image for the tray icon
-        self.icon_empty = gtk.gdk.pixbuf_new_from_file(ICON_PATH_EMPTY)
-        self.icon_unread = gtk.gdk.pixbuf_new_from_file(ICON_PATH_UNREAD)
-        self.icon_warning = gtk.gdk.pixbuf_new_from_file(ICON_PATH_WARNING)
+        self.icon_empty = gtk.gdk.pixbuf_new_from_file(self.icon_path_empty)
+        self.icon_notempty = gtk.gdk.pixbuf_new_from_file(self.icon_path_notempty)
+        self.icon_warning = gtk.gdk.pixbuf_new_from_file(self.icon_path_warning)
+        gtk.window_set_default_icon_list(self.icon_notempty)
         self.icon_size = self.tray.get_size()
         scaled_buf = self.scale_icon_to_system_tray(self.icon_empty)
         self.tray.set_from_pixbuf(scaled_buf)
@@ -61,13 +59,13 @@ class GmailNotify(object):
             gtk.main_iteration(gtk.TRUE)
         # Attemp connection for first time
         self.connect()
-        self.popup_menu = notifierpopup.GmailPopupMenu(self)
+        self.popup_menu = PopupMenu(self)
 
     def scale_icon_to_system_tray(self, icon):
         return icon.scale_simple(self.icon_size, self.icon_size, gtk.gdk.INTERP_BILINEAR)
 
     def warning_message(self, text):
-        subprocess.call(['notify-send', self.lang["program"], text, "-i", ICON_PATH_WARNING, "-t", str(self.options["popuptimespan"])])
+        subprocess.call(['notify-send', self.lang["program"], text, "-i", self.icon_path_warning, "-t", str(self.options["popuptimespan"])])
 
     def show_new_messages(self, mails, new=True):
         l = len(mails)
@@ -75,32 +73,32 @@ class GmailNotify(object):
             text = self.lang["messages_new"] % l if new else self.lang["messages_unread"] % l
             for mail in mails:
                 text += "\n<b>" + self.lang["message"] % ("</b>%s<%s><b>" % (mail.author_name, mail.author_addr), "</b>%s<b>" % mail.title, "</b>" + mail.summary) + "\n"
-            subprocess.call(['notify-send', self.lang["program"], text, "-i", ICON_PATH_NEW, "-t", str(self.options["popuptimespan"])])
+            subprocess.call(['notify-send', self.lang["program"], text, "-i", self.icon_path_new, "-t", str(self.options["popuptimespan"])])
             if new:
-                subprocess.call(['aplay', SOUND_PATH_INCOMING])
+                subprocess.call(['aplay', self.sound_path_incoming])
 
     def start_update(self, event=None):
-        self.popup_menu = notifierpopup.GmailPopupMenu(self)
+        self.popup_menu = PopupMenu(self)
         self.mail_check()
         if self.status == self.consts.get_ok():
             self.maintimer = gtk.timeout_add(self.options['checkinterval'], self.mail_check)
             self.started = True
         else:
             self.started = False
-            self.popup_menu = notifierpopup.GmailPopupMenu(self)
+            self.popup_menu = PopupMenu(self)
 
     def stop_update(self, event=None):
         if self.started:
             gtk.timeout_remove(self.maintimer)
             self.started = False
-            self.popup_menu = notifierpopup.GmailPopupMenu(self)
+            self.popup_menu = PopupMenu(self)
 
     def connect(self):
         logging.info("Trying to connect...")
         self.tray.set_tooltip(self.lang["connect_on"])
         while gtk.events_pending():
             gtk.main_iteration(gtk.TRUE)
-        self.connection = notifieratom.GmailAtom(self.options['gmailusername'], self.options['gmailpassword'])
+        self.connection = Receiver(self.options['gmailusername'], self.options['gmailpassword'])
         self.status = self.connection.refreshInfo()
         if self.status == self.consts.get_nologin():
             logging.info("No login/password")
@@ -161,7 +159,7 @@ class GmailNotify(object):
             self.show_new_messages(to_show)
             text = self.lang["messages_unread"] % messages_count
             self.tray.set_tooltip_text(text)
-            pixmap = self.scale_icon_to_system_tray(self.icon_unread).render_pixmap_and_mask(alpha_threshold=127)[0]
+            pixmap = self.scale_icon_to_system_tray(self.icon_notempty).render_pixmap_and_mask(alpha_threshold=127)[0]
             label = gtk.Label(str(messages_count))
             textLay = label.create_pango_layout("")
             textLay.set_markup('<span font_desc="Sans bold %i" foreground="#010101">%s</span>' % (self.icon_size / 3, str(messages_count)))
@@ -249,19 +247,14 @@ class GmailNotify(object):
         # Run the configuration dialog
         self.configWindow.show()
         # Update user/pass
-        self.connection = notifieratom.GmailAtom(self.options["gmailusername"], self.options["gmailpassword"])
+        self.connection = Receiver(self.options["gmailusername"], self.options["gmailpassword"])
         self.connect()
-        self.popup_menu = notifierpopup.GmailPopupMenu(self)
+        self.popup_menu = PopupMenu(self)
         # Update language
         self.lang = self.configWindow.get_lang()
         # Update popup menu
-        self.popup_menu = notifierpopup.GmailPopupMenu(self)
+        self.popup_menu = PopupMenu(self)
         return
 
     def main(self):
         gtk.main()
-
-if __name__ == "__main__":
-    logging.basicConfig(format="%(module)s:%(funcName)s()  %(message)s", level=logging.DEBUG)
-    gmailnotifier = GmailNotify()
-    gmailnotifier.main()
